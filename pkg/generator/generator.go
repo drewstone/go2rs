@@ -298,32 +298,22 @@ func (g *Generator) generateEnum(str *tstypes.String) string {
 }
 
 func (g *Generator) generateTypeSimple(t tstypes.Type, fieldName string) string {
-	// Use a map to track types being processed to prevent infinite recursion
-	return g.generateTypeSimpleWithContext(t, fieldName, make(map[tstypes.Type]bool))
+	// Use a slice to track the type hierarchy path
+	return g.generateTypeSimpleWithContext(t, fieldName, make([]tstypes.Type, 0))
 }
 
-func (g *Generator) generateTypeSimpleWithContext(t tstypes.Type, fieldName string, inProcess map[tstypes.Type]bool) string {
-	// If we've seen this type before in the current chain, break the recursion
-	if inProcess[t] {
-		// For recursive types, use the field name as the type
-		if obj, ok := t.(*tstypes.Object); ok && obj.Name != "" {
-			_, name := util.SplitPackageStruct(obj.Name)
-			return name
-		}
-		return fieldName
-	}
-
-	inProcess[t] = true
-	defer delete(inProcess, t)
-
+func (g *Generator) generateTypeSimpleWithContext(t tstypes.Type, fieldName string, typeStack []tstypes.Type) string {
 	switch v := t.(type) {
 	case *tstypes.Array:
-		return fmt.Sprintf("Vec<%s>", g.generateTypeSimpleWithContext(v.Inner, fieldName, inProcess))
+		inner := g.generateTypeSimpleWithContext(v.Inner, fieldName, typeStack)
+		return fmt.Sprintf("Vec<%s>", inner)
+
 	case *tstypes.Object:
 		if v.Name == "" {
 			return fieldName
 		}
 		return g.getTypeNameFromFullPath(v.Name)
+
 	case *tstypes.String:
 		if len(v.Enum) > 0 {
 			if v.Name != "" {
@@ -336,18 +326,33 @@ func (g *Generator) generateTypeSimpleWithContext(t tstypes.Type, fieldName stri
 			return fieldName + "Values"
 		}
 		return "String"
+
 	case *tstypes.Number:
 		return "u128"
+
 	case *tstypes.Boolean:
 		return "bool"
+
 	case *tstypes.Date:
 		return "DateTime<Utc>"
+
 	case *tstypes.Nullable:
-		return fmt.Sprintf("Option<%s>", g.generateTypeSimpleWithContext(v.Inner, fieldName, inProcess))
+		// Check if the inner type is a recursive reference
+		if obj, ok := v.Inner.(*tstypes.Object); ok && obj.Name != "" {
+			// Check if this object is in our known types
+			if knownType, exists := g.types[obj.Name]; exists && knownType == obj {
+				// This is a recursive reference to a top-level type
+				return fmt.Sprintf("Option<Box<%s>>", g.getTypeNameFromFullPath(obj.Name))
+			}
+		}
+		inner := g.generateTypeSimpleWithContext(v.Inner, fieldName, typeStack)
+		return fmt.Sprintf("Option<%s>", inner)
+
 	case *tstypes.Map:
-		return fmt.Sprintf("HashMap<%s, %s>",
-			g.generateTypeSimpleWithContext(v.Key, fieldName+"Key", inProcess),
-			g.generateTypeSimpleWithContext(v.Value, fieldName+"Value", inProcess))
+		key := g.generateTypeSimpleWithContext(v.Key, fieldName+"Key", typeStack)
+		value := g.generateTypeSimpleWithContext(v.Value, fieldName+"Value", typeStack)
+		return fmt.Sprintf("HashMap<%s, %s>", key, value)
+
 	default:
 		return "Unknown"
 	}
@@ -456,7 +461,9 @@ func (g *Generator) getTypeNameFromFullPath(fullPath string) string {
 			}
 			// For third and subsequent occurrences, hash the original base name
 			hash := util.SHA1(baseName)[:4]
-			return fmt.Sprintf("%s_%s", parentName+baseName, hash)
+			// Capitalize the first letter of the hash
+			hash = strings.Title(strings.ToLower(hash))
+			return fmt.Sprintf("%s%s", parentName+baseName, hash)
 		}
 	}
 
