@@ -119,7 +119,7 @@ pub mod example_03 {
         #[serde(rename = "Re")]
         pub re: Option<Box<Recursive>>,
     }
-    
+
     #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
     #[serde(rename_all = "PascalCase")]
     pub struct RecursiveMap {
