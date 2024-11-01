@@ -1,37 +1,37 @@
 package testdata
 
 import (
-	tstypes "github.com/drewstone/go2rs/pkg/types"
+	types "github.com/drewstone/go2rs/pkg/types"
 )
 
 var (
 	// Data01 - 01.ts
-	Data01 = map[string]tstypes.Type{
-		"github.com/drewstone/go2rs/pkg/parser/testdata/success.Embedded": &tstypes.Object{
+	Data01 = map[string]types.Type{
+		"github.com/drewstone/go2rs/pkg/parser/testdata/success.Embedded": &types.Struct{
 			Name: "github.com/drewstone/go2rs/pkg/parser/testdata/success.Embedded",
-			Entries: map[string]tstypes.ObjectEntry{
+			Fields: map[string]types.StructField{
 				"foo": {
 					Optional: true,
-					Type:     &tstypes.Number{},
+					Type:     &types.Number{},
 				},
 			},
 		},
-		"github.com/drewstone/go2rs/pkg/parser/testdata/success.Status": &tstypes.String{
+		"github.com/drewstone/go2rs/pkg/parser/testdata/success.Status": &types.String{
 			Name: "github.com/drewstone/go2rs/pkg/parser/testdata/success.Status",
 			Enum: []string{"Failure", "OK"},
 		},
-		"github.com/drewstone/go2rs/pkg/parser/testdata/success.Data": &tstypes.Object{
+		"github.com/drewstone/go2rs/pkg/parser/testdata/success.Data": &types.Struct{
 			Name: "github.com/drewstone/go2rs/pkg/parser/testdata/success.Data",
-			Entries: map[string]tstypes.ObjectEntry{
+			Fields: map[string]types.StructField{
 				"Time": {
-					Type: &tstypes.Date{},
+					Type: &types.Date{},
 				},
 				"Package": {
-					Type: &tstypes.Nullable{
-						Inner: &tstypes.Object{
-							Entries: map[string]tstypes.ObjectEntry{
+					Type: &types.Nullable{
+						Inner: &types.Struct{
+							Fields: map[string]types.StructField{
 								"data": {
-									Type: &tstypes.Number{},
+									Type: &types.Number{},
 								},
 							},
 						},
@@ -39,74 +39,74 @@ var (
 				},
 				"foo": {
 					Optional: true,
-					Type:     &tstypes.Number{},
+					Type:     &types.Number{},
 				},
 				"A": {
-					Type: &tstypes.Number{},
+					Type: &types.Number{},
 				},
 				"b": {
 					Optional: true,
-					Type:     &tstypes.Number{},
+					Type:     &types.Number{},
 				},
 				"C": {
-					Type: &tstypes.String{},
+					Type: &types.String{},
 				},
 				"D": {
-					Type: &tstypes.Nullable{
-						Inner: &tstypes.Number{},
+					Type: &types.Nullable{
+						Inner: &types.Number{},
 					},
 				},
 				"EnumArray": {
-					Type: &tstypes.Array{
-						Inner: &tstypes.String{
+					Type: &types.Array{
+						Inner: &types.String{
 							Enum: []string{"a", "b", "c"},
 						},
 					},
 				},
 				"Array": {
-					Type: &tstypes.Nullable{
-						Inner: &tstypes.Array{
-							Inner: &tstypes.Number{},
+					Type: &types.Nullable{
+						Inner: &types.Array{
+							Inner: &types.Number{},
 						},
 					},
 				},
 				"Map": {
-					Type: &tstypes.Map{
-						Key: &tstypes.String{},
-						Value: &tstypes.String{
+					Type: &types.Map{
+						Key: &types.String{},
+						Value: &types.String{
 							Name: "github.com/drewstone/go2rs/pkg/parser/testdata/success.Status",
 							Enum: []string{"Failure", "OK"},
 						},
 					},
 				},
 				"OptionalArray": {
-					Type: &tstypes.Array{
-						Inner: &tstypes.Nullable{
-							Inner: &tstypes.String{},
+					Type: &types.Array{
+						Inner: &types.Nullable{
+							Inner: &types.String{},
 						},
 					},
 				},
 				"Status": {
-					Type: &tstypes.String{
+					Type: &types.String{
 						Name: "github.com/drewstone/go2rs/pkg/parser/testdata/success.Status",
 						Enum: []string{"Failure", "OK"},
 					},
 				},
 				"Foo": {
 					Optional: true,
-					Type: &tstypes.Object{
-						Entries: map[string]tstypes.ObjectEntry{
+					Type: &types.Struct{
+						Fields: map[string]types.StructField{
 							"V": {
-								Type: &tstypes.Number{},
+								Type: &types.Number{},
 							},
 						},
 					},
 				},
 				"U": {
-					Type: &tstypes.Object{
-						Entries: map[string]tstypes.ObjectEntry{
+					Type: &types.Struct{
+						Fields: map[string]types.StructField{
 							"Data": {
-								Type: &tstypes.Number{},
+								Type: &types.Number{},
 							},
 						},
 					},

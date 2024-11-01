@@ -1,50 +1,50 @@
 package testdata
 
 import (
-	tstypes "github.com/drewstone/go2rs/pkg/types"
+	types "github.com/drewstone/go2rs/pkg/types"
 )
 
 var (
 	// Data02 - 02.ts
-	Data02 = map[string]tstypes.Type{
-		"github.com/drewstone/go2rs/pkg/parser/testdata/conflict.Data": &tstypes.Object{
+	Data02 = map[string]types.Type{
+		"github.com/drewstone/go2rs/pkg/parser/testdata/conflict.Data": &types.Struct{
 			Name: "github.com/drewstone/go2rs/pkg/parser/testdata/conflict.Data",
-			Entries: map[string]tstypes.ObjectEntry{
+			Fields: map[string]types.StructField{
 				"Hoge": {
-					Type: &tstypes.Object{
+					Type: &types.Struct{
 						Name: "github.com/drewstone/go2rs/pkg/parser/testdata/conflict.Hoge",
-						Entries: map[string]tstypes.ObjectEntry{
+						Fields: map[string]types.StructField{
 							"Data": {
-								Type: &tstypes.Number{},
+								Type: &types.Number{},
 							},
 						},
 					},
 				},
 				"PkgHoge": {
-					Type: &tstypes.Object{
+					Type: &types.Struct{
 						Name: "github.com/drewstone/go2rs/pkg/parser/testdata/conflict/pkg.Hoge",
-						Entries: map[string]tstypes.ObjectEntry{
+						Fields: map[string]types.StructField{
 							"Data": {
-								Type: &tstypes.Number{},
+								Type: &types.Number{},
 							},
 						},
 					},
 				},
 			},
 		},
-		"github.com/drewstone/go2rs/pkg/parser/testdata/conflict.Hoge": &tstypes.Object{
+		"github.com/drewstone/go2rs/pkg/parser/testdata/conflict.Hoge": &types.Struct{
 			Name: "github.com/drewstone/go2rs/pkg/parser/testdata/conflict.Hoge",
-			Entries: map[string]tstypes.ObjectEntry{
+			Fields: map[string]types.StructField{
 				"Data": {
-					Type: &tstypes.Number{},
+					Type: &types.Number{},
 				},
 			},
 		},
-		"github.com/drewstone/go2rs/pkg/parser/testdata/conflict/pkg.Hoge": &tstypes.Object{
+		"github.com/drewstone/go2rs/pkg/parser/testdata/conflict/pkg.Hoge": &types.Struct{
 			Name: "github.com/drewstone/go2rs/pkg/parser/testdata/conflict/pkg.Hoge",
-			Entries: map[string]tstypes.ObjectEntry{
+			Fields: map[string]types.StructField{
 				"Data": {
-					Type: &tstypes.Number{},
+					Type: &types.Number{},
 				},
 			},
 		},

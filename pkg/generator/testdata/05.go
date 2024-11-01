@@ -1,18 +1,18 @@
 package testdata
 
-import tstypes "github.com/drewstone/go2rs/pkg/types"
+import types "github.com/drewstone/go2rs/pkg/types"
 
 var (
 	// Test05 - 05.ts
-	Test05 = map[string]tstypes.Type{
-		"github.com/drewstone/go2rs/pkg/parser/testdata.CustomTest": &tstypes.Object{
+	Test05 = map[string]types.Type{
+		"github.com/drewstone/go2rs/pkg/parser/testdata.CustomTest": &types.Struct{
 			Name: "github.com/drewstone/go2rs/pkg/parser/testdata.CustomTest",
-			Entries: map[string]tstypes.ObjectEntry{
+			Fields: map[string]types.StructField{
 				"C": {
 					RawName:    "C",
 					FieldIndex: 0,
 
-					Type: &tstypes.Object{
+					Type: &types.Struct{
 						Name: "github.com/drewstone/go2rs/pkg/parser/testdata.CustomTestC",
 					},
 				},

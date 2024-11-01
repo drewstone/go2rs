@@ -1,19 +1,20 @@
 // Package types contains structs/interfaces representing Rust types
 package rstypes
 
-// Date - RFC3399 string in Rust
-type Date struct {
+// Trait - trait in Rust
+type Trait struct {
 	Common
+	Name string
 }
 
-var _ Type = &Date{}
+var _ Type = &Trait{}
 
 // UsedAsMapKey returns whether this type can be used as the key for map
-func (*Date) UsedAsMapKey() bool {
+func (t *Trait) UsedAsMapKey() bool {
 	return false
 }
 
 // String returns this type in string representation
-func (*Date) String() string {
-	return "Date"
+func (t *Trait) String() string {
+	return "trait " + t.Name
 }

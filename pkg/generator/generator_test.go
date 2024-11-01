@@ -6,7 +6,7 @@ import (
 	"testing"
 
 	"github.com/drewstone/go2rs/pkg/generator/testdata"
-	tstypes "github.com/drewstone/go2rs/pkg/types"
+	rstypes "github.com/drewstone/go2rs/pkg/types"
 	"github.com/google/go-cmp/cmp"
 )
 
@@ -23,10 +23,10 @@ func loadFile(t *testing.T, name string) string {
 
 func TestGenerator_Generate(t *testing.T) {
 	type fields struct {
-		types           map[string]tstypes.Type
+		types           map[string]rstypes.Type
 		altPkgs         map[string]string
 		BasePackage     string
-		CustomGenerator func(t tstypes.Type) (generated string, union bool)
+		CustomGenerator func(t rstypes.Type) (generated string, union bool)
 	}
 	tests := []struct {
 		name   string
@@ -76,8 +76,8 @@ func TestGenerator_Generate(t *testing.T) {
 				types:       testdata.Test05,
 				altPkgs:     map[string]string{},
 				BasePackage: "github.com/drewstone/go2rs/pkg/parser/testdata/custom",
-				CustomGenerator: func(t tstypes.Type) (generated string, union bool) {
-					obj, ok := t.(*tstypes.Object)
+				CustomGenerator: func(t rstypes.Type) (generated string, union bool) {
+					obj, ok := t.(*rstypes.Struct)
 
 					if !ok {
 						return "", false

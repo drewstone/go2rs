@@ -1,32 +1,32 @@
 package testdata
 
 import (
-	tstypes "github.com/drewstone/go2rs/pkg/types"
+	types "github.com/drewstone/go2rs/pkg/types"
 )
 
 var (
 	// Data03 - 03.ts
-	Data03 = map[string]tstypes.Type{
-		"github.com/drewstone/go2rs/pkg/parser/testdata/recursive.Recursive": &tstypes.Object{
+	Data03 = map[string]types.Type{
+		"github.com/drewstone/go2rs/pkg/parser/testdata/recursive.Recursive": &types.Struct{
 			Name: "github.com/drewstone/go2rs/pkg/parser/testdata/recursive.Recursive",
-			Entries: map[string]tstypes.ObjectEntry{
+			Fields: map[string]types.StructField{
 				"Re": {}, // Overwritten by init()
 				"Children": {
-					Type: &tstypes.Array{
-						Inner: &tstypes.Object{
+					Type: &types.Array{
+						Inner: &types.Struct{
 							Name: "github.com/drewstone/go2rs/pkg/parser/testdata/recursive.Recursive",
 						},
 					},
 				},
 			},
 		},
-		"github.com/drewstone/go2rs/pkg/parser/testdata/recursive.RecursiveMap": &tstypes.Object{
+		"github.com/drewstone/go2rs/pkg/parser/testdata/recursive.RecursiveMap": &types.Struct{
 			Name: "github.com/drewstone/go2rs/pkg/parser/testdata/recursive.RecursiveMap",
-			Entries: map[string]tstypes.ObjectEntry{
+			Fields: map[string]types.StructField{
 				"Map": {
-					Type: &tstypes.Map{
-						Key: &tstypes.String{},
-						Value: &tstypes.Object{
+					Type: &types.Map{
+						Key: &types.String{},
+						Value: &types.Struct{
 							Name: "github.com/drewstone/go2rs/pkg/parser/testdata/recursive.RecursiveMap",
 						},
 					},
@@ -38,10 +38,10 @@ var (
 
 func init() {
 	//nolint
-	re := Data03["github.com/drewstone/go2rs/pkg/parser/testdata/recursive.Recursive"].(*tstypes.Object)
+	re := Data03["github.com/drewstone/go2rs/pkg/parser/testdata/recursive.Recursive"].(*types.Struct)
 
-	re.Entries["Re"] = tstypes.ObjectEntry{
-		Type: &tstypes.Nullable{
+	re.Fields["Re"] = types.StructField{
+		Type: &types.Nullable{
 			Inner: re,
 		},
 	}

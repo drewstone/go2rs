@@ -1,8 +1,20 @@
-// Package types contains structs/interfaces representing TypeScript types
-package types
+// Package types contains structs/interfaces representing Rust types
+package rstypes
 
-import "github.com/go-generalize/go-easyparser/types"
+// Nullable - ... i.e. Option in Rust
+type Nullable struct {
+	Common
+	Inner Type
+}
 
-// Nullable - ... | null
-// Deprecated: github.com/go-generalize/go-easyparser/types.Nullable
-type Nullable = types.Nullable
+var _ Type = &Nullable{}
+
+// UsedAsMapKey returns whether this type can be used as the key for map
+func (e *Nullable) UsedAsMapKey() bool {
+	return false
+}
+
+// String returns this type in string representation
+func (e *Nullable) String() string {
+	return "Option<" + e.Inner.String() + ">"
+}

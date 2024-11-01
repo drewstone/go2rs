@@ -8,30 +8,30 @@ import (
 	"strings"
 	"unicode"
 
-	tstypes "github.com/drewstone/go2rs/pkg/types"
+	rstypes "github.com/drewstone/go2rs/pkg/types"
 	"github.com/drewstone/go2rs/pkg/util"
 )
 
 // Generator is a generator for Rust types
 type Generator struct {
-	types   map[string]tstypes.Type
+	types   map[string]rstypes.Type
 	altPkgs map[string]string
 
 	BasePackage     string
-	CustomGenerator func(t tstypes.Type) (generated string, union bool)
+	CustomGenerator func(t rstypes.Type) (generated string, union bool)
 
 	// Track nested types that need to be generated
-	nestedTypes map[string]*tstypes.Object
-	nestedEnums map[string]*tstypes.String
+	nestedTypes map[string]*rstypes.Struct
+	nestedEnums map[string]*rstypes.String
 }
 
 // NewGenerator returns a new Generator
-func NewGenerator(types map[string]tstypes.Type) *Generator {
+func NewGenerator(types map[string]rstypes.Type) *Generator {
 	return &Generator{
 		types:       types,
 		altPkgs:     make(map[string]string),
-		nestedTypes: make(map[string]*tstypes.Object),
-		nestedEnums: make(map[string]*tstypes.String),
+		nestedTypes: make(map[string]*rstypes.Struct),
+		nestedEnums: make(map[string]*rstypes.String),
 	}
 }
 
@@ -82,16 +82,16 @@ func (g *Generator) Generate() string {
 // collectAllTypes traverses the type hierarchy and collects all nested types
 func (g *Generator) collectAllTypes() {
 	if g.nestedTypes == nil {
-		g.nestedTypes = make(map[string]*tstypes.Object)
+		g.nestedTypes = make(map[string]*rstypes.Struct)
 	}
 	if g.nestedEnums == nil {
-		g.nestedEnums = make(map[string]*tstypes.String)
+		g.nestedEnums = make(map[string]*rstypes.String)
 	}
 
-	seen := make(map[tstypes.Type]bool)
+	seen := make(map[rstypes.Type]bool)
 
-	var registerTypes func(t tstypes.Type, parentName string)
-	registerTypes = func(t tstypes.Type, parentName string) {
+	var registerTypes func(t rstypes.Type, parentName string)
+	registerTypes = func(t rstypes.Type, parentName string) {
 		if t == nil || seen[t] {
 			return
 		}
@@ -99,7 +99,7 @@ func (g *Generator) collectAllTypes() {
 		defer delete(seen, t)
 
 		switch v := t.(type) {
-		case *tstypes.Object:
+		case *rstypes.Struct:
 			// For named types, always register them
 			if v.Name != "" {
 				typeName := g.getTypeNameFromFullPath(v.Name)
@@ -109,12 +109,12 @@ func (g *Generator) collectAllTypes() {
 			}
 
 			// Process fields
-			if v.Entries != nil {
-				for fieldName, entry := range v.Entries {
+			if v.Fields != nil {
+				for fieldName, entry := range v.Fields {
 					registerTypes(entry.Type, fieldName)
 				}
 			}
-		case *tstypes.String:
+		case *rstypes.String:
 			if len(v.Enum) > 0 && v.Name != "" {
 				_, name := util.SplitPackageStruct(v.Name)
 				g.nestedEnums[name] = v
@@ -123,8 +123,8 @@ func (g *Generator) collectAllTypes() {
 	}
 
 	// Phase 2: Process contents with cycle detection
-	var processContents func(t tstypes.Type, parentName string)
-	processContents = func(t tstypes.Type, parentName string) {
+	var processContents func(t rstypes.Type, parentName string)
+	processContents = func(t rstypes.Type, parentName string) {
 		if t == nil || seen[t] {
 			return
 		}
@@ -132,32 +132,32 @@ func (g *Generator) collectAllTypes() {
 		defer delete(seen, t)
 
 		switch v := t.(type) {
-		case *tstypes.Object:
+		case *rstypes.Struct:
 			// For anonymous objects
 			if v.Name == "" && parentName != "" {
 				g.nestedTypes[parentName] = v
 			}
 
 			// Process fields
-			if v.Entries != nil {
-				for fieldName, entry := range v.Entries {
+			if v.Fields != nil {
+				for fieldName, entry := range v.Fields {
 					registerTypes(entry.Type, fieldName) // Register any nested named types
 					processContents(entry.Type, fieldName)
 				}
 			}
 
-		case *tstypes.String:
+		case *rstypes.String:
 			if len(v.Enum) > 0 && v.Name == "" && parentName != "" {
 				g.nestedEnums[parentName] = v
 			}
 
-		case *tstypes.Array:
+		case *rstypes.Array:
 			processContents(v.Inner, parentName)
 
-		case *tstypes.Nullable:
+		case *rstypes.Nullable:
 			processContents(v.Inner, parentName)
 
-		case *tstypes.Map:
+		case *rstypes.Map:
 			processContents(v.Key, parentName+"Key")
 			processContents(v.Value, parentName+"Value")
 		}
@@ -172,7 +172,7 @@ func (g *Generator) collectAllTypes() {
 	}
 }
 
-func (g *Generator) generateStruct(obj *tstypes.Object) string {
+func (g *Generator) generateStruct(obj *rstypes.Struct) string {
 	buf := bytes.NewBuffer(nil)
 
 	buf.WriteString("#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]\n")
@@ -198,7 +198,7 @@ func (g *Generator) generateStruct(obj *tstypes.Object) string {
 
 	// Sort fields for consistent output
 	fields := make([]string, 0)
-	for k := range obj.Entries {
+	for k := range obj.Fields {
 		fields = append(fields, k)
 	}
 	sort.Strings(fields)
@@ -219,7 +219,7 @@ func (g *Generator) generateStruct(obj *tstypes.Object) string {
 
 	// Generate fields
 	for _, field := range fields {
-		entry := obj.Entries[field]
+		entry := obj.Fields[field]
 		fieldType := g.generateTypeSimple(entry.Type, field)
 
 		// Default to snake case
@@ -249,7 +249,7 @@ func (g *Generator) generateStruct(obj *tstypes.Object) string {
 	return buf.String()
 }
 
-func (g *Generator) generateEnum(str *tstypes.String) string {
+func (g *Generator) generateEnum(str *rstypes.String) string {
 	buf := bytes.NewBuffer(nil)
 
 	var name string
@@ -297,24 +297,24 @@ func (g *Generator) generateEnum(str *tstypes.String) string {
 	return buf.String()
 }
 
-func (g *Generator) generateTypeSimple(t tstypes.Type, fieldName string) string {
+func (g *Generator) generateTypeSimple(t rstypes.Type, fieldName string) string {
 	// Use a slice to track the type hierarchy path
-	return g.generateTypeSimpleWithContext(t, fieldName, make([]tstypes.Type, 0))
+	return g.generateTypeSimpleWithContext(t, fieldName, make([]rstypes.Type, 0))
 }
 
-func (g *Generator) generateTypeSimpleWithContext(t tstypes.Type, fieldName string, typeStack []tstypes.Type) string {
+func (g *Generator) generateTypeSimpleWithContext(t rstypes.Type, fieldName string, typeStack []rstypes.Type) string {
 	switch v := t.(type) {
-	case *tstypes.Array:
+	case *rstypes.Array:
 		inner := g.generateTypeSimpleWithContext(v.Inner, fieldName, typeStack)
 		return fmt.Sprintf("Vec<%s>", inner)
 
-	case *tstypes.Object:
+	case *rstypes.Struct:
 		if v.Name == "" {
 			return fieldName
 		}
 		return g.getTypeNameFromFullPath(v.Name)
 
-	case *tstypes.String:
+	case *rstypes.String:
 		if len(v.Enum) > 0 {
 			if v.Name != "" {
 				_, name := util.SplitPackageStruct(v.Name)
@@ -327,18 +327,18 @@ func (g *Generator) generateTypeSimpleWithContext(t tstypes.Type, fieldName stri
 		}
 		return "String"
 
-	case *tstypes.Number:
+	case *rstypes.Number:
 		return "u128"
 
-	case *tstypes.Boolean:
+	case *rstypes.Boolean:
 		return "bool"
 
-	case *tstypes.Date:
+	case *rstypes.Date:
 		return "DateTime<Utc>"
 
-	case *tstypes.Nullable:
+	case *rstypes.Nullable:
 		// Check if the inner type is a recursive reference
-		if obj, ok := v.Inner.(*tstypes.Object); ok && obj.Name != "" {
+		if obj, ok := v.Inner.(*rstypes.Struct); ok && obj.Name != "" {
 			// Check if this object is in our known types
 			if knownType, exists := g.types[obj.Name]; exists && knownType == obj {
 				// This is a recursive reference to a top-level type
@@ -348,7 +348,7 @@ func (g *Generator) generateTypeSimpleWithContext(t tstypes.Type, fieldName stri
 		inner := g.generateTypeSimpleWithContext(v.Inner, fieldName, typeStack)
 		return fmt.Sprintf("Option<%s>", inner)
 
-	case *tstypes.Map:
+	case *rstypes.Map:
 		key := g.generateTypeSimpleWithContext(v.Key, fieldName+"Key", typeStack)
 		value := g.generateTypeSimpleWithContext(v.Value, fieldName+"Value", typeStack)
 		return fmt.Sprintf("HashMap<%s, %s>", key, value)
@@ -377,10 +377,10 @@ type requiredImports struct {
 
 func (g *Generator) determineRequiredImports() requiredImports {
 	imports := requiredImports{}
-	seen := make(map[tstypes.Type]bool)
+	seen := make(map[rstypes.Type]bool)
 
-	var checkType func(t tstypes.Type)
-	checkType = func(t tstypes.Type) {
+	var checkType func(t rstypes.Type)
+	checkType = func(t rstypes.Type) {
 		if t == nil || seen[t] {
 			return
 		}
@@ -388,19 +388,19 @@ func (g *Generator) determineRequiredImports() requiredImports {
 		defer delete(seen, t)
 
 		switch v := t.(type) {
-		case *tstypes.Map:
+		case *rstypes.Map:
 			imports.hasHashMap = true
 			checkType(v.Key)
 			checkType(v.Value)
-		case *tstypes.Date:
+		case *rstypes.Date:
 			imports.hasDateTime = true
-		case *tstypes.Array:
+		case *rstypes.Array:
 			checkType(v.Inner)
-		case *tstypes.Nullable:
+		case *rstypes.Nullable:
 			checkType(v.Inner)
-		case *tstypes.Object:
-			if v.Entries != nil {
-				for _, entry := range v.Entries {
+		case *rstypes.Struct:
+			if v.Fields != nil {
+				for _, entry := range v.Fields {
 					checkType(entry.Type)
 				}
 			}
