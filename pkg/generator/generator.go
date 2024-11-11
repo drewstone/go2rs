@@ -220,7 +220,7 @@ func (g *Generator) generateStruct(obj *rstypes.Struct) string {
 	// Generate fields
 	for _, field := range fields {
 		entry := obj.Fields[field]
-		fieldType := g.generateTypeSimple(entry.Type, field)
+		fieldType := g.GenerateTypeSimple(entry.Type, field)
 
 		// Default to snake case
 		rustField := toSnakeCase(field)
@@ -297,15 +297,15 @@ func (g *Generator) generateEnum(str *rstypes.String) string {
 	return buf.String()
 }
 
-func (g *Generator) generateTypeSimple(t rstypes.Type, fieldName string) string {
+func (g *Generator) GenerateTypeSimple(t rstypes.Type, fieldName string) string {
 	// Use a slice to track the type hierarchy path
-	return g.generateTypeSimpleWithContext(t, fieldName, make([]rstypes.Type, 0))
+	return g.GenerateTypeSimpleWithContext(t, fieldName, make([]rstypes.Type, 0))
 }
 
-func (g *Generator) generateTypeSimpleWithContext(t rstypes.Type, fieldName string, typeStack []rstypes.Type) string {
+func (g *Generator) GenerateTypeSimpleWithContext(t rstypes.Type, fieldName string, typeStack []rstypes.Type) string {
 	switch v := t.(type) {
 	case *rstypes.Array:
-		inner := g.generateTypeSimpleWithContext(v.Inner, fieldName, typeStack)
+		inner := g.GenerateTypeSimpleWithContext(v.Inner, fieldName, typeStack)
 		return fmt.Sprintf("Vec<%s>", inner)
 
 	case *rstypes.Struct:
@@ -345,12 +345,12 @@ func (g *Generator) generateTypeSimpleWithContext(t rstypes.Type, fieldName stri
 				return fmt.Sprintf("Option<Box<%s>>", g.getTypeNameFromFullPath(obj.Name))
 			}
 		}
-		inner := g.generateTypeSimpleWithContext(v.Inner, fieldName, typeStack)
+		inner := g.GenerateTypeSimpleWithContext(v.Inner, fieldName, typeStack)
 		return fmt.Sprintf("Option<%s>", inner)
 
 	case *rstypes.Map:
-		key := g.generateTypeSimpleWithContext(v.Key, fieldName+"Key", typeStack)
-		value := g.generateTypeSimpleWithContext(v.Value, fieldName+"Value", typeStack)
+		key := g.GenerateTypeSimpleWithContext(v.Key, fieldName+"Key", typeStack)
+		value := g.GenerateTypeSimpleWithContext(v.Value, fieldName+"Value", typeStack)
 		return fmt.Sprintf("HashMap<%s, %s>", key, value)
 
 	default:
