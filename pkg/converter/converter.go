@@ -37,7 +37,7 @@ func NewConverter() *Converter {
 
 	// Map Go primitives to Rust types
 	primitives := map[reflect.Type]rstypes.Type{
-		reflect.TypeOf(false): &rstypes.Number{BitSize: 1}, // bool
+		reflect.TypeOf(false): &rstypes.Boolean{},
 		reflect.TypeOf(int(0)): &rstypes.Number{
 			BitSize:  32,
 			IsSigned: true,
@@ -94,6 +94,9 @@ func (c *Converter) Convert(t reflect.Type) rstypes.Type {
 	case reflect.Float64:
 		result = &rstypes.Number{BitSize: 64, IsFloat: true}
 	case reflect.Struct:
+		if t.NumField() == 0 {
+			return &rstypes.Unit{}
+		}
 		result = c.convertStruct(t)
 	case reflect.Slice:
 		result = &rstypes.Vec{Inner: c.Convert(t.Elem())}
@@ -265,13 +268,24 @@ func (c *Converter) getParamName(t reflect.Type, index int, configNames []string
 		return configNames[index]
 	}
 
+	// Special case for empty struct
+	if t.Kind() == reflect.Struct && t.NumField() == 0 {
+		return "empty"
+	}
+
 	// Check if we already have a name for this type
 	if name, ok := c.paramNames[t]; ok {
 		return name
 	}
 
-	// Generate name based on type
+	// Use single-letter names for common primitives
 	switch t.Kind() {
+	case reflect.String:
+		return "s"
+	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+		return "n"
+	case reflect.Bool:
+		return "b"
 	case reflect.Ptr:
 		return c.getParamName(t.Elem(), index, nil)
 	case reflect.Struct:

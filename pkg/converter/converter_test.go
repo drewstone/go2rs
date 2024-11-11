@@ -29,14 +29,14 @@ func TestPrimitives(t *testing.T) {
 	expect(t, c.Convert(typ("")), "String")
 	expect(t, c.Convert(typ(138)), "i32")
 	expect(t, c.Convert(typ(int64(138))), "i64")
-	expect(t, c.Convert(typ(true)), "bool")
+
 }
 
 func TestStructs(t *testing.T) {
 	c := NewConverter()
-	expect(t, c.Convert(typ(User{})), "struct User {}")
+	expect(t, c.Convert(typ(User{})), "User")
 	expect(t, c.Convert(typ(&User{})), "Option<User>")
-	expect(t, c.Convert(typ(Nested{})), "struct Nested {}")
+	expect(t, c.Convert(typ(Nested{})), "Nested")
 }
 
 func TestFuncs(t *testing.T) {

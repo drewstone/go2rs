@@ -15,5 +15,5 @@ func (b *Boolean) UsedAsMapKey() bool {
 
 // String returns this type in string representation
 func (b *Boolean) String() string {
-	return "Boolean"
+	return "bool"
 }

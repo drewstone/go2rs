@@ -57,7 +57,14 @@ func (f *Function) String() string {
 		paramStrs[i] = fmt.Sprintf("%s: %s", param.Name, param.Type.String())
 	}
 
-	parts = append(parts, "("+strings.Join(paramStrs, ", ")+")")
+	// Remove extra space by directly concatenating the opening parenthesis
+	paramStr := "(" + strings.Join(paramStrs, ", ") + ")"
+	if f.Name != "" || len(parts) > 1 {
+		parts = append(parts, paramStr)
+	} else {
+		// For simple fn(), attach directly to "fn"
+		parts[len(parts)-1] += paramStr
+	}
 
 	// Add return type if not unit
 	if f.Returns != nil && f.Returns.String() != "()" {
