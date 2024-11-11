@@ -4,6 +4,7 @@ package generator
 import (
 	"bytes"
 	"fmt"
+	"reflect"
 	"sort"
 	"strings"
 	"unicode"
@@ -16,6 +17,7 @@ import (
 type Generator struct {
 	types   map[string]rstypes.Type
 	altPkgs map[string]string
+	typeMap map[reflect.Type]rstypes.Type // New field for type mappings
 
 	BasePackage     string
 	CustomGenerator func(t rstypes.Type) (generated string, union bool)
@@ -25,13 +27,21 @@ type Generator struct {
 	nestedEnums map[string]*rstypes.String
 }
 
-// NewGenerator returns a new Generator
+// Update NewGenerator
 func NewGenerator(types map[string]rstypes.Type) *Generator {
 	return &Generator{
 		types:       types,
 		altPkgs:     make(map[string]string),
+		typeMap:     make(map[reflect.Type]rstypes.Type),
 		nestedTypes: make(map[string]*rstypes.Struct),
 		nestedEnums: make(map[string]*rstypes.String),
+	}
+}
+
+// Add new method
+func (g *Generator) AddTypes(typeMap map[reflect.Type]rstypes.Type) {
+	for t, rustType := range typeMap {
+		g.typeMap[t] = rustType
 	}
 }
 
